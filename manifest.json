@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Google API Key Scanner",
+  "description": "Real-time detection of exposed Google API keys (AIza) in web pages for bug bounty reconnaissance",
+  "version": "1.0.0",
+  "author": "Security Research Tool",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Google API Key Scanner"
+  },
+  "permissions": [
+    "activeTab",
+    "storage",
+    "notifications",
+    "scripting",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://maps.googleapis.com/*",
+    "https://www.googleapis.com/*"
+  ]
+}

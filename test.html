@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page - Google API Keys</title>
+</head>
+<body>
+    <h1>Google API Key Test Page</h1>
+    <p>This page contains test Google API keys in various formats to test the scanner extension.</p>
+    
+    <!-- Test key in HTML comment -->
+    <!-- AIzaSyDxI3ZC2NqQz8X7Y6W5V4U1T9S0R8P3O7M -->
+    
+    <!-- Test key in meta tag -->
+    <meta name="google-api-key" content="AIzaSyBxJ4Y9D3R8A2Q7Z6W5V4U1T9S0R8P3O7M">
+    
+    <!-- Test key in script -->
+    <script>
+        const API_KEY = "AIzaSyCxK5L1E4F9B3S8X7Y6W5V4U1T9S0R8P3O7M";
+        
+        // Another test key
+        const mapsApiKey = 'AIzaSyDyM6N2G5H0C4T9Z7X8W6V5U2T0S9R8P4O7N';
+        
+        // Test function that uses API key
+        function initMaps() {
+            const key = "AIzaSyEzN7O3H6I5J0U8A9Y7X6W5V3U2T1S0R9P8O";
+            console.log('Initializing maps with key:', key);
+        }
+    </script>
+    
+    <!-- External script with key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyF1P8Q4R7J0K2L9M8X7Y6W5V4U1T9S0R8P3O&callback=initMaps"></script>
+    
+    <!-- Test key in data attribute -->
+    <div data-api-key="AIzaSyG2Q9S5T8L0M3N9X8Y7W6V5U4T2S1R0P9O8N">
+        This div contains a Google API key
+    </div>
+    
+    <!-- Test key in href -->
+    <a href="https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyH3R0T6U9M4N3L8X7Y6W5V5U6T3S2R1P0O9N&center=New+York&zoom=12">
+        Static Map Link
+    </a>
+    
+    <script>
+        // Dynamic key creation
+        const dynamicKey = 'AIza' + 'SyI4S7U0N5O4M9L2X8Y7W6V6U7T4S3R2P1O0N9M';
+        
+        // Key in object
+        const config = {
+            apiKey: "AIzaSyJ5T8V1P6Q0R5S9M3X8Y7W7V8U5T4S3R2P1O",
+            projectId: "test-project"
+        };
+        
+        // Key in JSON string
+        const jsonData = '{"key": "AIzaSyK6U9W2Q1S6T0R4M2X9Y8W8V9U6T5S4R3P2O"}';
+        
+        console.log('Test page loaded with multiple API keys');
+        
+        // Test Gemini API key (this is a real format but likely invalid key)
+        const geminiKey = "AIzaSyL7X0S7U1T8V2Q5R6M3N9L8X7Y6W5V4U3T2S";
+        
+        // Test with more realistic key patterns
+        const realisticKeys = [
+            "AIzaSyM8Y1T9U2V3W4X5S6R7Q8P9O0N1M2L3K4J",
+            "AIzaSyN9Z2U0V1W2X3Y4Z5A6B7C8D9E0F1G2H3I",
+            "AIzaSyO0A3B4C5D6E7F8G9H0I1J2K3L4M5N6O7P"
+        ];
+        
+        realisticKeys.forEach(key => {
+            console.log('Realistic test key:', key);
+        });
+    </script>
+    
+    <div class="key-display">
+        <h2>Test Keys Included:</h2>
+        <ul>
+            <li>HTML Comment: AIzaSyDxI3ZC2NqQz8X7Y6W5V4U1T9S0R8P3O7M</li>
+            <li>Meta Tag: AIzaSyBxJ4Y9D3R8A2Q7Z6W5V4U1T9S0R8P3O7M</li>
+            <li>JavaScript Variable: AIzaSyCxK5L1E4F9B3S8X7Y6W5V4U1T9S0R8P3O7M</li>
+            <li>Maps API: AIzaSyDyM6N2G5H0C4T9Z7X8W6V5U2T0S9R8P4O7N</li>
+            <li>Function: AIzaSyEzN7O3H6I5J0U8A9Y7X6W5V3U2T1S0R9P8O</li>
+            <li>External Script: AIzaSyF1P8Q4R7J0K2L9M8X7Y6W5V4U1T9S0R8P3O</li>
+            <li>Data Attribute: AIzaSyG2Q9S5T8L0M3N9X8Y7W6V5U4T2S1R0P9O8N</li>
+            <li>Href Parameter: AIzaSyH3R0T6U9M4N3L8X7Y6W5V5U6T3S2R1P0O9N</li>
+            <li>Dynamic: AIzaSyI4S7U0N5O4M9L2X8Y7W6V6U7T4S3R2P1O0N9M</li>
+            <li>Object Property: AIzaSyJ5T8V1P6Q0R5S9M3X8Y7W7V8U5T4S3R2P1O</li>
+            <li>JSON String: AIzaSyK6U9W2Q1S6T0R4M2X9Y8W8V9U6T5S4R3P2O</li>
+            <li>Gemini Test: AIzaSyL7X0S7U1T8V2Q5R6M3N9L8X7Y6W5V4U3T2S</li>
+        </ul>
+    </div>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .key-display {
+            background: #f0f0f0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .key-display ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .key-display li {
+            margin: 5px 0;
+            word-break: break-all;
+        }
+        h1, h2 {
+            color: #333;
+        }
+    </style>
+</body>
+</html>

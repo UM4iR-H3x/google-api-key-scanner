@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google API Key Scanner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-width: 450px;
+            max-width: 600px;
+            min-height: 400px;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .url-display {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .content {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .key-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #e2e8f0;
+        }
+
+        .key-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .key-item.valid {
+            border-left-color: #48bb78;
+        }
+
+        .key-item.invalid {
+            border-left-color: #f56565;
+        }
+
+        .key-item.pending {
+            border-left-color: #ed8936;
+        }
+
+        .key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .key-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            background: #f7fafc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #2d3748;
+            word-break: break-all;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .key-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-valid {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-invalid {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-pending {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .key-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .detail-item {
+            font-size: 12px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .detail-value {
+            color: #718096;
+            word-break: break-all;
+        }
+
+        .key-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .action-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .spinner {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .services {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .service-badge {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .gemini-response {
+            margin: 10px 0;
+            padding: 10px;
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 6px;
+        }
+
+        .response-container {
+            font-size: 11px;
+        }
+
+        .curl-command {
+            background: #f7fafc;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            word-break: break-all;
+        }
+
+        .response-status.vulnerable {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+
+        .response-status.safe {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+
+        .response-body {
+            margin: 8px 0;
+        }
+
+        .response-body pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .impact-assessment.critical {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+
+        .impact-assessment.low {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+
+        .vulnerability-critical {
+            color: #e53e3e;
+            font-weight: 600;
+        }
+
+        .vulnerability-safe {
+            color: #38a169;
+            font-weight: 600;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            🔍 Google API Key Scanner
+        </h1>
+        <div class="stats">
+            <div class="stat-item">
+                <span>Keys Found:</span>
+                <span class="stat-value" id="key-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span>Valid:</span>
+                <span class="stat-value" id="valid-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span>Invalid:</span>
+                <span class="stat-value" id="invalid-count">0</span>
+            </div>
+        </div>
+        <div class="url-display" id="url-display">No page loaded</div>
+    </div>
+
+    <div class="controls">
+        <input type="text" class="search-box" id="search-box" placeholder="Search keys...">
+        <button class="btn btn-primary" id="validate-all-btn">✓ Validate All</button>
+        <button class="btn btn-secondary" id="export-btn">📥 Export</button>
+        <button class="btn btn-danger" id="clear-btn">🗑️ Clear</button>
+    </div>
+
+    <div class="content" id="content">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading scanner...</p>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
