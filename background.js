@@ -1,16 +1,9 @@
-/**
- * Background Service Worker for Google API Key Scanner
- * Manages key validation, storage, and notifications
- */
 
-// Storage for found keys per tab
 const tabKeys = new Map();
 let selectedTabId = -1;
 
-// Validation cache to avoid duplicate API calls
 const validationCache = new Map();
 
-// Debug flag
 const DEBUG = false; // Disabled to reduce console noise
 
 function debugLog(...args) {
@@ -19,18 +12,13 @@ function debugLog(...args) {
     }
 }
 
-// Essential logging function for important events
 function logImportant(...args) {
     console.log('[Google API Key Scanner BG]', ...args);
 }
 
-/**
- * Initialize the background service worker
- */
 chrome.runtime.onInstalled.addListener(() => {
     logImportant('Google API Key Scanner extension installed');
     
-    // Set default settings
     chrome.storage.sync.set({
         enabled: true,
         showNotifications: true,
@@ -39,20 +27,13 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-/**
- * Handle tab activation
- */
 chrome.tabs.onActivated.addListener((activeInfo) => {
     selectedTabId = activeInfo.tabId;
     updateBadge();
 });
 
-/**
- * Handle tab updates
- */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete') {
-        // Clear keys for this tab when page loads
         if (tabKeys.has(tabId)) {
             tabKeys.delete(tabId);
         }
@@ -60,9 +41,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
 });
 
-/**
- * Handle messages from content script
- */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const tabId = sender.tab?.id || selectedTabId;
     
@@ -85,7 +63,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             validateAPIKey(message.key).then(result => {
                 sendResponse(result);
             });
-            return true; // Keep message channel open for async response
             
         case 'clear_keys':
             tabKeys.delete(tabId);
@@ -101,12 +78,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-/**
- * Handle newly found API keys
- * @param {Array} keys - Array of found keys
- * @param {number} tabId - Tab ID
- * @param {string} url - Source URL
- */
 async function handleKeysFound(keys, tabId, url) {
     if (!tabKeys.has(tabId)) {
         tabKeys.set(tabId, []);
@@ -116,11 +87,9 @@ async function handleKeysFound(keys, tabId, url) {
     let newKeysFound = false;
     
     for (const keyData of keys) {
-        // Check if key already exists for this tab
         const existingIndex = existingKeys.findIndex(k => k.key === keyData.key);
         
         if (existingIndex === -1) {
-            // New key found
             existingKeys.push({
                 ...keyData,
                 validationStatus: 'pending',
@@ -128,7 +97,6 @@ async function handleKeysFound(keys, tabId, url) {
             });
             newKeysFound = true;
             
-            // Auto-validate if enabled
             const settings = await getSettings();
             if (settings.autoValidate) {
                 validateAPIKey(keyData.key).then(validationResult => {
@@ -141,7 +109,6 @@ async function handleKeysFound(keys, tabId, url) {
     if (newKeysFound) {
         updateBadge();
         
-        // Show notification
         const settings = await getSettings();
         if (settings.showNotifications) {
             try {
@@ -160,16 +127,10 @@ async function handleKeysFound(keys, tabId, url) {
     }
 }
 
-/**
- * Validate a Google API key
- * @param {string} apiKey - The API key to validate
- * @returns {Promise<Object>} - Validation result
- */
 async function validateAPIKey(apiKey) {
-    // Check cache first
     if (validationCache.has(apiKey)) {
         const cached = validationCache.get(apiKey);
-        if (Date.now() - cached.timestamp < 5 * 60 * 1000) { // 5 minutes cache
+        if (Date.now() - cached.timestamp < 5 * 60 * 1000) {
             return cached.result;
         }
     }
@@ -183,7 +144,6 @@ async function validateAPIKey(apiKey) {
         validationTime: new Date().toISOString()
     };
     
-    // Test against different Google APIs
     const tests = [
         testGeminiAPI(apiKey),
         testMapsAPI(apiKey),
@@ -216,7 +176,6 @@ async function validateAPIKey(apiKey) {
         });
     }
     
-    // Cache result
     validationCache.set(apiKey, {
         result: validationResults,
         timestamp: Date.now()
@@ -225,11 +184,6 @@ async function validateAPIKey(apiKey) {
     return validationResults;
 }
 
-/**
- * Test Gemini API access (critical based on TruffleSecurity research)
- * @param {string} apiKey - API key to test
- * @returns {Promise<Object>} - Test result with full response
- */
 async function testGeminiAPI(apiKey) {
     try {
         const response = await fetch(
@@ -335,11 +289,6 @@ async function testGeminiAPI(apiKey) {
     }
 }
 
-/**
- * Test Maps API access
- * @param {string} apiKey - API key to test
- * @returns {Promise<Object>} - Test result
- */
 async function testMapsAPI(apiKey) {
     try {
         const response = await fetch(
@@ -377,11 +326,6 @@ async function testMapsAPI(apiKey) {
     }
 }
 
-/**
- * Test YouTube API access
- * @param {string} apiKey - API key to test
- * @returns {Promise<Object>} - Test result
- */
 async function testYouTubeAPI(apiKey) {
     try {
         const response = await fetch(
@@ -419,22 +363,11 @@ async function testYouTubeAPI(apiKey) {
     }
 }
 
-/**
- * Get test name by index
- * @param {number} index - Test index
- * @returns {string} - Test name
- */
 function getTestName(index) {
     const names = ['gemini', 'maps', 'youtube'];
     return names[index] || 'unknown';
 }
 
-/**
- * Update key validation result
- * @param {number} tabId - Tab ID
- * @param {string} key - API key
- * @param {Object} validationResult - Validation result
- */
 function updateKeyValidation(tabId, key, validationResult) {
     if (!tabKeys.has(tabId)) return;
     
@@ -445,7 +378,6 @@ function updateKeyValidation(tabId, key, validationResult) {
         keys[keyIndex].validationResult = validationResult;
         keys[keyIndex].validationStatus = validationResult.isValid ? 'valid' : 'invalid';
         
-        // Send update to popup if it's open
         chrome.runtime.sendMessage({
             type: 'key_validated',
             tabId: tabId,
@@ -455,9 +387,6 @@ function updateKeyValidation(tabId, key, validationResult) {
     }
 }
 
-/**
- * Update extension badge with key count
- */
 function updateBadge() {
     const keys = tabKeys.get(selectedTabId) || [];
     const count = keys.length;
@@ -468,11 +397,6 @@ function updateBadge() {
     });
 }
 
-/**
- * Show browser notification
- * @param {string} title - Notification title
- * @param {string} message - Notification message
- */
 function showNotification(title, message) {
     chrome.notifications.create({
         type: 'basic',
@@ -481,10 +405,6 @@ function showNotification(title, message) {
     });
 }
 
-/**
- * Get extension settings
- * @returns {Promise<Object>} - Settings object
- */
 async function getSettings() {
     return new Promise((resolve) => {
         chrome.storage.sync.get({
@@ -496,18 +416,10 @@ async function getSettings() {
     });
 }
 
-/**
- * Generate unique ID for key
- * @returns {string} - Unique ID
- */
 function generateKeyId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-/**
- * Export all keys from all tabs
- * @returns {Promise<Object>} - Export data
- */
 async function exportAllKeys() {
     const exportData = {
         timestamp: new Date().toISOString(),
@@ -525,14 +437,12 @@ async function exportAllKeys() {
             };
             exportData.totalKeys += keys.length;
         } catch (error) {
-            // Tab might be closed
-        }
+            }
     }
     
     return exportData;
 }
 
-// Initialize on startup
 chrome.runtime.onStartup.addListener(() => {
     console.log('[Google API Key Scanner] Extension started');
 });

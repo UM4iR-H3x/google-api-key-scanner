@@ -1,15 +1,8 @@
-/**
- * Popup Script for Google API Key Scanner
- * Manages the popup UI and user interactions
- */
 
 let currentTabId = -1;
 let foundKeys = [];
 let searchTerm = '';
 
-/**
- * Initialize popup
- */
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('[Google API Key Scanner] Popup initialized');
     
@@ -19,29 +12,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     startRealTimeUpdates();
 });
 
-/**
- * Setup event listeners
- */
 function setupEventListeners() {
-    // Search functionality
     document.getElementById('search-box').addEventListener('input', function(e) {
         searchTerm = e.target.value.toLowerCase();
         renderKeys();
     });
 
-    // Validate all button
     document.getElementById('validate-all-btn').addEventListener('click', validateAllKeys);
 
-    // Export button
     document.getElementById('export-btn').addEventListener('click', exportKeys);
 
-    // Clear button
     document.getElementById('clear-btn').addEventListener('click', clearKeys);
 }
 
-/**
- * Get current active tab
- */
 async function getCurrentTab() {
     try {
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -54,9 +37,6 @@ async function getCurrentTab() {
     }
 }
 
-/**
- * Load keys from background script
- */
 async function loadKeys() {
     try {
         const response = await chrome.runtime.sendMessage({ type: 'get_keys' });
@@ -71,25 +51,16 @@ async function loadKeys() {
     }
 }
 
-/**
- * Start real-time updates
- */
 function startRealTimeUpdates() {
-    // Listen for messages from background script
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === 'key_validated' && message.tabId === currentTabId) {
             updateKeyValidation(message.key, message.result);
         }
     });
 
-    // Refresh keys every 2 seconds
     setInterval(loadKeys, 2000);
 }
 
-/**
- * Update URL display
- * @param {string} url - Current tab URL
- */
 function updateUrlDisplay(url) {
     const display = document.getElementById('url-display');
     if (url) {
@@ -104,9 +75,6 @@ function updateUrlDisplay(url) {
     }
 }
 
-/**
- * Update statistics
- */
 function updateStats() {
     const validCount = foundKeys.filter(key => key.validationStatus === 'valid').length;
     const invalidCount = foundKeys.filter(key => key.validationStatus === 'invalid').length;
@@ -116,13 +84,9 @@ function updateStats() {
     document.getElementById('invalid-count').textContent = invalidCount;
 }
 
-/**
- * Render keys in the popup
- */
 function renderKeys() {
     const container = document.getElementById('content');
     
-    // Filter keys based on search term
     let filteredKeys = foundKeys.filter(key => {
         if (!searchTerm) return true;
         
@@ -146,21 +110,14 @@ function renderKeys() {
 
     container.innerHTML = filteredKeys.map(key => createKeyElement(key)).join('');
     
-    // Add event listeners to the new elements
     attachKeyEventListeners();
 }
 
-/**
- * Create HTML element for a key
- * @param {Object} key - Key object
- * @returns {string} - HTML string
- */
 function createKeyElement(key) {
     const statusClass = key.validationStatus || 'pending';
     const statusText = key.validationStatus === 'valid' ? 'Valid' : 
                       key.validationStatus === 'invalid' ? 'Invalid' : 'Pending';
     
-    // Get validation results
     const validationResult = key.validationResult;
     let services = [];
     let geminiResult = null;
@@ -247,11 +204,7 @@ function createKeyElement(key) {
     `;
 }
 
-/**
- * Attach event listeners to key elements
- */
 function attachKeyEventListeners() {
-    // Copy buttons
     document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const key = this.dataset.key;
@@ -260,7 +213,6 @@ function attachKeyEventListeners() {
         });
     });
 
-    // Validate buttons
     document.querySelectorAll('.validate-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const key = this.dataset.key;
@@ -268,7 +220,6 @@ function attachKeyEventListeners() {
         });
     });
 
-    // Test buttons
     document.querySelectorAll('.test-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const key = this.dataset.key;
@@ -276,7 +227,6 @@ function attachKeyEventListeners() {
         });
     });
 
-    // Details buttons
     document.querySelectorAll('.details-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const key = this.dataset.key;
@@ -285,10 +235,6 @@ function attachKeyEventListeners() {
     });
 }
 
-/**
- * Validate a single key
- * @param {string} key - API key to validate
- */
 async function validateKey(key) {
     try {
         showNotification('Validating key...');
@@ -307,9 +253,6 @@ async function validateKey(key) {
     }
 }
 
-/**
- * Validate all keys
- */
 async function validateAllKeys() {
     const pendingKeys = foundKeys.filter(key => 
         key.validationStatus !== 'valid' && key.validationStatus !== 'invalid'
@@ -324,16 +267,10 @@ async function validateAllKeys() {
     
     for (const keyObj of pendingKeys) {
         await validateKey(keyObj.key);
-        // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 500));
     }
 }
 
-/**
- * Update key validation result
- * @param {string} key - API key
- * @param {Object} result - Validation result
- */
 function updateKeyValidation(key, result) {
     const keyIndex = foundKeys.findIndex(k => k.key === key);
     if (keyIndex !== -1) {
@@ -344,18 +281,12 @@ function updateKeyValidation(key, result) {
     }
 }
 
-/**
- * Test key in console
- * @param {string} key - API key to test
- */
 function testKeyInConsole(key) {
     const testCommands = `
-// Test Gemini API (as per TruffleSecurity research)
 fetch('https://generativelanguage.googleapis.com/v1beta/models?key=${key}')
   .then(r => r.json())
   .then(console.log);
 
-// Test Maps API
 fetch('https://maps.googleapis.com/maps/api/geocode/json?address=test&key=${key}')
   .then(r => r.json())
   .then(console.log);
@@ -365,10 +296,6 @@ fetch('https://maps.googleapis.com/maps/api/geocode/json?address=test&key=${key}
     showNotification('Test commands copied! Open console and paste to test');
 }
 
-/**
- * Show detailed key information
- * @param {string} key - API key
- */
 function showKeyDetails(key) {
     const keyObj = foundKeys.find(k => k.key === key);
     if (!keyObj) return;
@@ -378,9 +305,6 @@ function showKeyDetails(key) {
     showNotification('Key details copied to clipboard');
 }
 
-/**
- * Export all keys
- */
 async function exportKeys() {
     try {
         const response = await chrome.runtime.sendMessage({ type: 'export_keys' });
@@ -404,9 +328,6 @@ async function exportKeys() {
     }
 }
 
-/**
- * Clear all keys for current tab
- */
 async function clearKeys() {
     try {
         const response = await chrome.runtime.sendMessage({ type: 'clear_keys' });
@@ -422,21 +343,12 @@ async function clearKeys() {
     }
 }
 
-/**
- * Copy text to clipboard
- * @param {string} text - Text to copy
- */
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).catch(err => {
         console.error('Failed to copy:', err);
     });
 }
 
-/**
- * Show notification
- * @param {string} message - Notification message
- * @param {string} type - Notification type (success/error)
- */
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.className = 'notification';
@@ -449,10 +361,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-/**
- * Show error message
- * @param {string} message - Error message
- */
 function showError(message) {
     const container = document.getElementById('content');
     container.innerHTML = `
@@ -463,22 +371,12 @@ function showError(message) {
     `;
 }
 
-/**
- * Escape HTML to prevent XSS
- * @param {string} text - Text to escape
- * @returns {string} - Escaped text
- */
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-/**
- * Extract hostname from URL
- * @param {string} url - Full URL
- * @returns {string} - Hostname
- */
 function extractHostname(url) {
     try {
         return new URL(url).hostname;
@@ -487,11 +385,6 @@ function extractHostname(url) {
     }
 }
 
-/**
- * Format timestamp
- * @param {string} timestamp - ISO timestamp
- * @returns {string} - Formatted time
- */
 function formatTime(timestamp) {
     try {
         const date = new Date(timestamp);

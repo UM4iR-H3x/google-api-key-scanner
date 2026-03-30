@@ -1,19 +1,8 @@
-/**
- * Google API Key Validation System
- * Validates detected keys against Google APIs to check if they're active and what services they can access
- */
 
-// Cache for validation results to avoid duplicate API calls
 const validationCache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-/**
- * Validate a Google API key by testing against various Google services
- * @param {string} apiKey - The API key to validate
- * @returns {Promise<Object>} - Validation result with status and accessible services
- */
 async function validateGoogleAPIKey(apiKey) {
-    // Check cache first
     const cached = validationCache.get(apiKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         return cached.result;
@@ -28,7 +17,6 @@ async function validateGoogleAPIKey(apiKey) {
         validationTime: new Date().toISOString()
     };
 
-    // Test against different Google APIs
     const tests = [
         testGeminiAPI(apiKey),
         testMapsAPI(apiKey),
@@ -62,7 +50,6 @@ async function validateGoogleAPIKey(apiKey) {
         });
     }
 
-    // Cache the result
     validationCache.set(apiKey, {
         result: validationResults,
         timestamp: Date.now()
@@ -71,14 +58,8 @@ async function validateGoogleAPIKey(apiKey) {
     return validationResults;
 }
 
-/**
- * Test Gemini API access (most critical based on TruffleSecurity research)
- * @param {string} apiKey - API key to test
- * @returns {Promise<Object>} - Test result
- */
 async function testGeminiAPI(apiKey) {
     try {
-        // Test the /models endpoint as mentioned in the blog post
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
             {
@@ -124,14 +105,8 @@ async function testGeminiAPI(apiKey) {
     }
 }
 
-/**
- * Test Google Maps API access
- * @param {string} apiKey - API key to test
- * @returns {Promise<Object>} - Test result
- */
 async function testMapsAPI(apiKey) {
     try {
-        // Test with a simple geocoding request
         const response = await fetch(
             `https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=${apiKey}`,
             {
@@ -177,11 +152,6 @@ async function testMapsAPI(apiKey) {
     }
 }
 
-/**
- * Test YouTube API access
- * @param {string} apiKey - API key to test
- * @returns {Promise<Object>} - Test result
- */
 async function testYouTubeAPI(apiKey) {
     try {
         const response = await fetch(
@@ -229,14 +199,8 @@ async function testYouTubeAPI(apiKey) {
     }
 }
 
-/**
- * Test general Google API access
- * @param {string} apiKey - API key to test
- * @returns {Promise<Object>} - Test result
- */
 async function testGeneralGoogleAPI(apiKey) {
     try {
-        // Test a general endpoint that should work for most keys
         const response = await fetch(
             `https://www.googleapis.com/oauth2/v2/userinfo?key=${apiKey}`,
             {
@@ -271,27 +235,15 @@ async function testGeneralGoogleAPI(apiKey) {
     }
 }
 
-/**
- * Get test name by index
- * @param {number} index - Test index
- * @returns {string} - Test name
- */
 function getTestName(index) {
     const names = ['gemini', 'maps', 'youtube', 'general'];
     return names[index] || 'unknown';
 }
 
-/**
- * Clear validation cache
- */
 function clearValidationCache() {
     validationCache.clear();
 }
 
-/**
- * Get cache statistics
- * @returns {Object} - Cache stats
- */
 function getCacheStats() {
     return {
         size: validationCache.size,
@@ -299,7 +251,6 @@ function getCacheStats() {
     };
 }
 
-// Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         validateGoogleAPIKey,
